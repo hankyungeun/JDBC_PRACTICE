@@ -1,17 +1,43 @@
 package com.kh.model.dao;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.InvalidPropertiesFormatException;
+import java.util.Properties;
 
 import com.kh.common.JDBCTemplate;
 import com.kh.model.vo.Member;
 
 // DAO (Data Access Object)
 public class MemberDao {
+	/*
+	 * 기존 : DAO클래스에 사용자가 요청할 때마다 실행해야 하는 SQL문을 자바 소스코드 내에 명시적으로 작성(정적 코딩방식)
+	 * -> 문제점 : SQL문을 수정해야 할 때 자바 소스코드를 수정해야 함=> 수정한 내용을 반영할 때 프로그램을 종료 후 재시작 해야 함
+	 	-> 해결 : SQL문을 별도로 관리하는 외부파일로 만들어서 실시간으로 기록된 SQL문을 읽어서 실행(동적 코딩 방식)
+	 */
+	private Properties prop = new Properties();
+	
+	public MemberDao() {
+		//xml읽기
+		try {
+			prop.loadFromXML(new FileInputStream("resources/query.xml"));
+			
+		} catch (InvalidPropertiesFormatException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * 회원 추가 메소드 (사용자가 입력한 데이터들을 DB에 추가)
 	 * @param conn, m : Connection 객체와 사용자가 입력한 데이터(Member)
@@ -23,7 +49,7 @@ public class MemberDao {
 		
 		int result = 0;
 		// INSERT INTO MEMBER VALUES (SEQ_UNO,?,?,?,?,?,?,?,?,?,SYSDATE)
-		String sql = "INSERT INTO MEMBER VALUES (SEQ_UNO.NEXTVAL,?,?,?,?,?,?,?,?,?,SYSDATE)";
+		String sql = prop.getProperty("insertMember");
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, m.getUserId());
@@ -55,18 +81,17 @@ public class MemberDao {
 	public ArrayList<Member> selectAllList(Connection conn){
 		ArrayList<Member> list = new ArrayList<Member>();
 		
-		Statement stmt = null;
+		PreparedStatement pstmt = null;
 		ResultSet rset = null;
 
-		String sql = "SELECT * FROM MEMBER ORDER BY USERNO";
-		
+		//String sql = "SELECT * FROM MEMBER ORDER BY USERNO";
+		String sql = prop.getProperty("selectAllList");
 		try {
-			stmt = conn.prepareStatement(sql);
-			rset = stmt.executeQuery(sql);
+			pstmt = conn.prepareStatement(sql);
+			rset = pstmt.executeQuery(sql);
 			
 			while(rset.next()) {			// .next():데이터가 있는지 여부 체크
 				Member m = new Member();
-				
 				m.setUserNo(rset.getInt("USERNO"));
 				m.setUserId(rset.getString("USERID"));
 				m.setUserPw(rset.getString("USERPW"));
@@ -86,7 +111,7 @@ public class MemberDao {
 			e.printStackTrace();
 		} finally {
 			JDBCTemplate.close(rset);
-			JDBCTemplate.close(stmt);
+			JDBCTemplate.close(pstmt);
 		}
 		return list;
 	}
@@ -101,7 +126,7 @@ public class MemberDao {
 		PreparedStatement pstmt = null;			// SQL 실행 및 결과 받기
 		ResultSet rset = null;
 
-		String sql = "SELECT * FROM MEMBER WHere USERID = ?";
+		String sql = prop.getProperty("searchByUserId");
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, userId);
@@ -144,7 +169,7 @@ public class MemberDao {
 		PreparedStatement pstmt = null;
 		ResultSet rset = null;
 		
-		String sql = "SELECT * FROM MEMBER WHERE USERNAME LIKE ?";
+		String sql = prop.getProperty("searchByUserNameKeyword");
 		
 		try {
 			pstmt = conn.prepareStatement(sql);
@@ -181,7 +206,7 @@ public class MemberDao {
 	public int updateUser(Connection conn, Member member) {
 		PreparedStatement pstmt = null;
 		int result = 0;
-		String sql = "UPDATE MEMBER SET USERPW = ? , EMAIL = ?, PHONE = ?, ADDRESS = ? WHERE USERID = ?";
+		String sql =  prop.getProperty("updateMember");
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, member.getUserPw());

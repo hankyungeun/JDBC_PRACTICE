@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Member Query</comment>
+<entry key="updateMember">UPDATE MEMBER SET USERPW=?, EMAIL = ?, PHONE =?, ADDRESS =? WHERE USERID = ?</entry>
+<entry key="searchByUserId">SELECT * FROM MEMBER WHERE USERID = ?</entry>
+<entry key="deleteMember">DELETE FROM MEMBER WHERE USERID = ?</entry>
+<entry key="insertMember">INSERT INTO MEMBER VALUES(SEQ_UNO.NEXTVAL,?,?,?,?,?,?,?,?,?,SYSDATE)</entry>
+<entry key="searchByUserNameKeyword">SELECT * FROM MEMBER WHERE USERNAME LIKE ?</entry>
+<entry key="selectAllList">SELECT * FROM MEMBER</entry>
+</properties>
